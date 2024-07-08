@@ -11,12 +11,31 @@ namespace fs = filesystem;
 
 string filename;
 
-string GetDir()
-{
+string GetDir() {
 	char result[MAX_PATH];
-	return string(result, GetModuleFileName(NULL, result, MAX_PATH));
+	DWORD length = GetModuleFileNameA(NULL, result, MAX_PATH);
+
+	if (length == 0) {
+		// Handle error
+		return "";
+	}
+
+	string fullPath(result);
+	size_t pos = fullPath.find_last_of("\\/");
+	return (pos == string::npos) ? "" : fullPath.substr(0, pos);
 }
 string path = GetDir();
+
+static void DisplayFiles()
+{
+	for (const auto& entry : fs::directory_iterator(path))
+	{
+		if (entry.is_regular_file() && entry.path().extension() == ".txt")
+		{
+			cout << entry.path().filename().string() << std::endl;
+		}
+	}
+}
 
 static void FileSelection()
 {
@@ -76,13 +95,6 @@ static void ReadFile()
 	operatedfile.close();
 }
 
-static void DisplayFiles()
-{
-	cout << "Scrolls in giveth compartment: " << endl;
-	for (const auto& entry : fs::directory_iterator(path))
-		cout << entry.path() << endl;
-}
-
 void FileOperations()
 {
 	char selection;
@@ -137,7 +149,7 @@ void menu()
 				break;
 
 			default:
-
+				cout << "Foul command" << endl;
 				break;
 			}
 
